@@ -1,0 +1,79 @@
+
+DEFINE constant number_floors EQUAL 10
+
+DEFINE integer cage_button, requested_floor
+
+DEFINE floor_queue array(number_floors + 1)
+
+DEFINE Floor_Button USING floor_number AND requested_direction:
+    FLOOR_NUMBER: floor_number,
+    REQUESTED_DIRECTION: requested_direction
+ENDDEFINE
+
+DEFINE Cage USING id, direction, floor_button AND current_floor:
+    ID: id,
+    DIRECTION: direction
+    FLOOR_BUTTON: floor_button
+    CURRENT_FLOOR: current_floor
+ENDDEFINE
+
+SET floor_request_button TO INSTANTIATE Floor_Button
+
+SET cage1 TO INSTANTIATE Cage WITH 1 AND none AND 1 AND 1
+SET cage2 TO INSTANTIATE Cage WITH 2 AND none AND 1 AND 1
+
+
+IF floor_request_button IS pressed THEN
+    SET floor_number TO READ floor_request_button floor_number   
+    SET requested_direction TO READ requested_direction_button requested_direction
+    CALL addFloorQueue WITH floor_number AND requested_direction
+ENDIF
+
+IF cage1_button IS pressed THEN
+    SET requested_floor TO READ cage1_button    
+    CALL addFloorQueue WITH requested_floor AND cage1 id
+ENDIF
+
+IF cage2_button IS pressed THEN
+    SET requested_floor TO READ cage_button    
+    CALL addFloorQueue WITH requested_floor AND cage2 id
+ENDIF
+
+SEQUENCE addFloorQueue USING floor_number AND id_or_direction    
+        FOR EACH index in floor_queue from least significant to most significant
+                IF floor_number IS EQUAL index THEN
+                    SET floor_queue(index) TO id_or_direction
+                ENDIF
+        ENDFOR 
+ENDSEQUENCE
+
+CALL doQueue WITH cage1
+CALL doQueue WITH cage2
+
+SEQUENCE doQueue USING cage
+    IF cage direction IS EQUAL up
+        WHILE next_target IS NOT EQUAL 0
+            CALL checkNextTtarget WITH cage direction
+            go_next_target
+        ENDWHILE
+    ENDIF
+ENDSEQUENCE
+
+
+SEQUENCE checkNextTtarget
+    IF direction IS up
+        FOR EACH index in floor_queue from cage current_floor to most significant
+            IF floor_queue[index] IS EQUAL up OR cage id
+                SET next_target TO index
+            ENDIF
+        ENDFOR
+    ENDIF
+    ELSE direction IS down
+        FOR EACH index in floor_queue from cage current_floor to least significant
+            IF floor_queue[index] IS EQUAL down OR cage id
+                SET next_target TO index
+            ENDIF
+        ENDFOR
+    ENDIF
+    RETURN next_target
+ENDSEQUENCE
