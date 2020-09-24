@@ -14,11 +14,10 @@ DEFINE Floor_Button USING floor_number AND requested_direction:
 ENDDEFINE
 
 SET floor_request_button TO INSTANTIATE Floor_Button
-
 IF Floor_Button IS pressed THEN
     SET floor_number TO READ Floor_Button floor_number   
     SET requested_direction TO READ Floor_Button requested_direction
-    CALL addFloorQueue WITH floor_number AND requested_direction
+    CALL addFloorQueue WITH floor_number AND requested_direction RETURNING selected_cage
 ENDIF
 
 FOR EACH cage IN cages
@@ -31,65 +30,63 @@ ENDFOR
 
 CALL doQueue WITH cage1
 
-
-SEQUENCE addFloorQueue USING floor_number AND floor_direction        
-        SET shortest_distance TO number_floors
+SEQUENCE addFloorQueue USING floor_number AND floor_direction         
+        SET shortest_distance_cage_floor TO number_floors
         SET cage_find TO 0
-        FOR EACH position IN cages
-            IF cages_direction IS EQUAL floor_direction THEN
-                CALL findAvailableCage RETURNING selected_cage AND cage_find
-            ENDIF
-            ELSE IF cage_direction IS EQUAL idle AND cage_find IS EQUAL 0 THEN
-                CALL findAvailableCage RETURNING selected_cage AND cage_find
-            ELSE IF cage_direction IS NOT EQUAL floor_direction AND cage_find IS EQUAL 0 THEN
-                CALL findAvailableCage RETURNING selected_cage AND cage_find
+        
+        CALL testCagesInSameDirection WITH floor_direction RETURNING selected_cage AND cage_find
+        IF  cage_find IS EQUAL 0 THEN
+            CALL testCagesInSameDirection WITH idle RETURNING selected_cage AND cage_find
+        ENDIF
+        If cage_find IS EQUAL 0 THEN
+            CALL tryFindAvailableCage RETURNING selected_cage AND cage_find
+        ENDIF
+        If cage_find IS EQUAL 1 THEN
+            SET cages_destinations[selected_cage][floor_number]
+        ENDIF          
 ENDSEQUENCE
 
+SEQUENCE testCagesInSameDirection WITH test_direction RETURNING selected_cage AND cage_find
+    FOR EACH row IN cages_destinations[row][column]
+        IF cages_direction[row] IS EQUAL test_direction THEN
+            CALL tryFindAvailableCage RETURNING selected_cage AND cage_find
+            IF cage_find IS EQUAL 1 THEN
+                RETURN selected_cage AND cage_find
+            ELSE RETURN cage_find
+            ENDIF
+        ENDIF
+    ENDFOR
+ENDSEQUENCE
 
-
-SEQUENCE findAvailableCage
-    CALL calcShortestDistance RETURNING distance_cage_floor
-    IF distance_cage_floor IS LESS THAN shortest_distance THEN
-        SET shortest_distance TO distance_cage_floor
+SEQUENCE tryFindAvailableCage RETURNING selected_cage AND cage_find
+    CALL calcDistanceToNextDestinationFloor WITH cages_direction RETURNING distance_cage_floor
+    IF distance_cage_floor IS LESS THAN shortest_distance_cage_floor THEN
+        SET shortest_distance_cage_floor TO distance_cage_floor
         SET selected_cage TO cage_number
-        SET cage_find TO 1
+        SET cage_find TO 1       
     ENDIF
 ENDSEQUENCE
 
-SEQUENCE calcShortestDistance RETURNING distance_cage_floor
-    FOR EACH position IN number_floors
-        IF cages_direction IS up AND position IS GREATER THAN cages_current_floor AND cages_destinations IS NOT EQUAL 0 THEN
-            COMPUTE  distance_cage_floor AS diference between 
-
-            
-
-
+SEQUENCE calcDistanceToNextDestinationFloor WITH cages_direction RETURNING distance_cage_floor
+    distance_cage_floor IS EQUAL 0
+    SET column TO cages_current_floor
+    WHILE distance_cage_floor IS EQUAL 0
+        INCREMENT column
+        IF cages_direction IS up
+            IF cages_destinations[row][column] IS NOT EQUAL 0 THEN
+                RETURN distance_cage_floor AS diference between cages_destinations[row][column] AND cages_current_floor            
+            ENDIF               
+        ENDIF
+        IF cages_direction IS down
+            SUBTRACT 1 FROM column
+            IF cages_destinations[row][column] IS NOT EQUAL 0 THEN
+                RETURN distance_cage_floor AS diference between cages_current_floor AND cages_destinations[row][column]             
+            ENDIF               
+        ENDIF
+    ENDWHILE
 ENDSEQUENCE
 
 
-                SET requested_floor TO READ cage_button
-                SET requested_direction TO READ     
-                CALL addCageQueue WITH requested_floor AND cage position
-            ENDIF
-        ENDFOR
-        
-        
-        
-        
-        
-        FOR EACH position FROM 1 to 10
-            IF direction  IS EQUAL up 
-                IF floor_number IS EQUAL position THEN
-                    SET queue_up(position) TO direction
-                ENDIF
-            ENDIF
-            IF direction  IS EQUAL down 
-                IF floor_number IS EQUAL position THEN
-                    SET queue_down(position) TO direction
-                ENDIF
-            ENDIF
-        ENDFOR   
-ENDSEQUENCE
 
 SEQUENCE addCageQueue USING requested_floor AND cage_id     
         FOR EACH position in 1 TO 10 FROM least significant to most significant
