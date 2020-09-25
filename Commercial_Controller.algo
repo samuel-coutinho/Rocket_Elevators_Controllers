@@ -32,9 +32,9 @@ DEFINE Baterry USING _numberColumns AND _numberElevatorsPerColumn AND _numberBas
         ENDFOR
     ENDSEQUENCE
 
-    SEQUENCE requestElevator WITH _requestedFloor AND _direction
+    SEQUENCE requestElevator WITH _requestedFloor AND _requestedDirection
         CALL findBestColumn WITH _requestedFloor RETURNING column
-        Call findBestElevator OF column RETURNING bestElevator
+        Call findBestElevator OF column WITH _requestedFloor RETURNING bestElevator
         ADD _requestedFloor TO destinationList OF bestElevator
         CALL moveElevatorToDestination OF elevator
         CALL openDoors WITH bestElevator   // not implemented
@@ -46,7 +46,18 @@ DEFINE Baterry USING _numberColumns AND _numberElevatorsPerColumn AND _numberBas
                 RETURN column
             ENDIF
         ENDFOR
-    ENDSEQUENCE  
+    ENDSEQUENCE 
+
+    SEQUENCE requestFloor WITH _destination
+        IF _destination IS GREATER THAN 0
+            SET requestedDirection TO Down
+        ELSE 
+            SET requestedDirection TO Up
+        ENDIF
+        CALL requestElevator WITH _requestedFloor AND requestedDirection
+    ENDSEQUENCE
+
+
 
 ENDDEFINE
 
@@ -66,17 +77,28 @@ DEFINE Column USING _id AND _numberFloors AND _numberOfElevators AND firstServed
         ENDFOR
     ENDSEQUENCE
 
-    SEQUENCE findBestElevator RETURNING bestElevator
+    SEQUENCE findBestElevator WITH _requestedFloor AND _requestedDirection RETURNING bestElevator
         SET shortestDistance TO _numberFloors
+        SET bestElevator TO 0
         FOR EACH elevator in ElevatorList
             CALL calcDistanceToFloor OF elevator USING _requestedFloor RETURNING distance
-            IF distance IS LESS OR EQUAL THAN shortestDistance
-                SET shortestDistance TO distance
-                SET bestElevator TO elevator
-            ENDIF
+            IF directon IS EQUAL _requestedDirection AND ABSOLUTE(currentFloor) IS GREATER THAN _requestedFloor THEN
+                CALL calcShortestDistance WITH _distance AND shortestDistance RETURNING bestElevator
+            ELSE IF directon IS EQUAL None AND bestElevator IS EQUAL 0 THEN
+                CALL calcShortestDistance WITH _distance AND shortestDistance RETURNING bestElevator
+            ELSE
+                CALL calcShortestDistance WITH _distance AND shortestDistance RETURNING bestElevator
+            ENDIF                
         ENDFOR
         RETURN bestElevator
     ENDSEQUENCE 
+
+    SEQUENCE calcShortestDistance WITH _distance AND shortestDistance RETURNING bestElevator
+        IF distance IS LESS OR EQUAL THAN shortestDistance
+            SET shortestDistance TO distance
+            SET bestElevator TO elevator
+        ENDIF
+    ENDSEQUENCE
 
 
 ENDDEFINE
@@ -86,7 +108,8 @@ DEFINE Elevator USING _id
     status: Online  
     directon: Nome
     currentFloor: 1
-    doors: Closed   
+    doors: Closed
+    distanceToFloor: 0   
     destinationList: EMPTY LIST
     
     SEQUENCE calcDistanceToFloor USING _requestedFloor RETURNING distance
