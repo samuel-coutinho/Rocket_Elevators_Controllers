@@ -1,0 +1,62 @@
+DEFINE Baterry USING _numberColumns AND _numberElevatorsPerColumn AND _numberBasements AND _numberFloors
+    status: Online
+    columnlist: EMPTY LIST
+    callButtonList: EMPTY LIST
+
+    SEQUENCE createcallButtonList USING _numberBasements AND _numberFloors
+        FOR iterator FROM -numberBasements TO _numberFloors
+            IF iterator IS LESS THAN 0
+                INIT newCallButton TO INSTANTIATE CallButon WITH Down AND iterator
+                ADD newCallButton TO callButtonList                
+            ENDIF
+            IF iterator IS GREATER THAN 1
+                INIT newCallButton TO INSTANTIATE CallButon WITH UP AND iterator
+                ADD newCallButton TO callButtonList                
+            ENDIF       
+        ENDFOR
+    ENDSEQUENCE
+
+    SEQUENCE createcolumnlist USING _numberBasements AND _numberColumns AND _numberFloors
+        INIT newColumn TO INSTANTIATE Column WITH 1 AND _numberBasements AND _numberElevatorsPerColumn AND -_numberBasements AND 1
+        SET numberOfFloorsPerColumn TO _numberFloors FLOOR_DIVISION  (_numberColumns MINUS 1)
+        FOR iterator FROM 2 TO _numberColumns
+            SET firstServedFloor TO 1 PLUS [(iterator MINUS 2) TIMES numberOfFloorsPerColumn]
+            SET lastServedFloor TO firstServedFloor PLUS (numberOfFloorsPerColumn MINUS 1)
+            SET reminder TO _numberFloors MODULUS (_numberColumns MINUS 1)
+            IF reminder IS NOT EQUAL 0  AND iterator IS EQUAL _numberColumns THEN
+                SET lastServedFloor TO lastServedFloor PLUS reminder
+                SET numberOfFloorsPerColumn TO numberOfFloorsPerColumn PLUS reminder
+            ENDIF
+            INIT newColumn TO INSTANTIATE Column WITH iterator AND numberOfFloorsPerColumn AND _numberElevatorsPerColumn AND firstServedFloor AND lastServedFloor
+            ADD newColumn TO columnlist
+        ENDFOR
+    ENDSEQUENCE
+
+
+ENDDEFINE
+
+DEFINE Column USING _id AND _numberFloors AND _numberOfElevators AND firstServedFloor AND _lastServedFloor
+    ID: _id
+    status: Online
+    numberFloors: _numberFloors
+    numberOfElevators: _numberOfElevators    
+    firstServedFloor: _firstServedFloor
+    lastServedFloor: _lastServedFloor
+    ElevatorsList: EMPTY LIST
+
+ENDDEFINE
+
+DEFINE Elevators
+    ID: _id
+    status: Online  
+    directon: Nome
+    currentFloor: 1
+    doors: Closed   
+    destinationList: EMPTY LIST
+
+ENDDEFINE
+
+DEFINE callButton USING AND _direction AND _floor    
+    direction: _direction
+    floor: _floor
+ENDDEFINE
