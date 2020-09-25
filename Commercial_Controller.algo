@@ -32,6 +32,21 @@ DEFINE Baterry USING _numberColumns AND _numberElevatorsPerColumn AND _numberBas
         ENDFOR
     ENDSEQUENCE
 
+    SEQUENCE requestElevator WITH _requestedFloor AND _direction
+        CALL findBestColumn WITH _requestedFloor RETURNING column
+        Call findBestElevator OF column RETURNING bestElevator
+        ADD _requestedFloor TO destinationList OF bestElevator
+        CALL moveElevatorToDestination OF elevator
+        CALL openDoors WITH bestElevator   // not implemented
+    ENDSEQUENCE
+
+    SEQUENCE findBestColumn WITH _requestedFloor RETURNING column          
+        FOR EACH column in columnlist
+            IF _requestedFloor IS GREATER THAN firstServedFloor AND IS LESS THAN lastServedFloor THEN
+                RETURN column
+            ENDIF
+        ENDFOR
+    ENDSEQUENCE  
 
 ENDDEFINE
 
@@ -42,17 +57,56 @@ DEFINE Column USING _id AND _numberFloors AND _numberOfElevators AND firstServed
     numberOfElevators: _numberOfElevators    
     firstServedFloor: _firstServedFloor
     lastServedFloor: _lastServedFloor
-    ElevatorsList: EMPTY LIST
+    ElevatorList: EMPTY LIST
+
+    SEQUENCE createElevatorList USING _numberElevatorsPerColumn
+        FOR iterator FROM 1 TO _numberElevatorsPerColumn
+            INIT newElevator TO INSTANTIATE Elevator WITH iterator
+            ADD newElevator TO ElevatorList
+        ENDFOR
+    ENDSEQUENCE
+
+    SEQUENCE findBestElevator RETURNING bestElevator
+        SET shortestDistance TO _numberFloors
+        FOR EACH elevator in ElevatorList
+            CALL calcDistanceToFloor OF elevator USING _requestedFloor RETURNING distance
+            IF distance IS LESS OR EQUAL THAN shortestDistance
+                SET shortestDistance TO distance
+                SET bestElevator TO elevator
+            ENDIF
+        ENDFOR
+        RETURN bestElevator
+    ENDSEQUENCE 
+
 
 ENDDEFINE
 
-DEFINE Elevators
+DEFINE Elevator USING _id
     ID: _id
     status: Online  
     directon: Nome
     currentFloor: 1
     doors: Closed   
     destinationList: EMPTY LIST
+    
+    SEQUENCE calcDistanceToFloor USING _requestedFloor RETURNING distance
+        SET distance TO ABSOLUTE(_requestedFloor MINUS currentFloor)     
+        RETURN distance
+    ENDSEQUENCE
+
+    SEQUENCE moveElevatorToDestination
+        SET destination TO READ destinationList[1]        
+        IF currentFloor IS GREATER THAN destination
+            SET direction TO Down            
+        ELSE 
+            SET direction TO Up             
+        WHILE currentFloor IS NOT EQUAL destination
+            CALL moveElevator WITH direction
+            Call readCurrentFloor RETURNING currentFloor
+        ENDWHILE
+        REMOVE destination FROM destinationList
+        ROTATE destinationList LEFT 
+    ENDSEQUENCE
 
 ENDDEFINE
 
@@ -60,3 +114,4 @@ DEFINE callButton USING AND _direction AND _floor
     direction: _direction
     floor: _floor
 ENDDEFINE
+
