@@ -31,11 +31,26 @@ DEFINE Baterry USING _numberColumns AND _numberElevatorsPerColumn AND _numberBas
             ADD newColumn TO columnlist
         ENDFOR
     ENDSEQUENCE
-
+                                        43                   UP
     SEQUENCE requestElevator WITH _requestedFloor AND _requestedDirection
+        CALL goToDestinationFloor WITH _requestedFloor AND _requestedDirection
+        ADD 1 TO destinationList OF bestElevator
+        CALL goToDestinationFloor WITH _requestedFloor AND _requestedDirection
+    ENDSEQUENCE 
+
+    SEQUENCE requestFloor WITH _requestedFloor
+        IF _requestedFloor IS GREATER THAN 0
+            SET requestedDirection TO Down
+        ELSE 
+            SET requestedDirection TO Up
+        ENDIF
+        CALL goToDestinationFloor WITH _requestedFloor AND _requestedDirection
+    ENDSEQUENCE
+
+    SEQUENCE goToDestinationFloor WITH _requestedFloor AND _requestedDirection
         CALL findBestColumn WITH _requestedFloor RETURNING column
-        Call findBestElevator OF column WITH _requestedFloor RETURNING bestElevator
-        ADD _requestedFloor TO destinationList OF bestElevator
+        CALL findBestElevator OF column WITH _requestedFloor AND _requestedDirection RETURNING bestElevator
+        ADD _requestedFloor TO destinationList OF bestElevator        
         CALL moveElevatorToDestination OF elevator
         CALL openDoors WITH bestElevator   // not implemented
     ENDSEQUENCE
@@ -47,18 +62,6 @@ DEFINE Baterry USING _numberColumns AND _numberElevatorsPerColumn AND _numberBas
             ENDIF
         ENDFOR
     ENDSEQUENCE 
-
-    SEQUENCE requestFloor WITH _destination
-        IF _destination IS GREATER THAN 0
-            SET requestedDirection TO Down
-        ELSE 
-            SET requestedDirection TO Up
-        ENDIF
-        CALL requestElevator WITH _requestedFloor AND requestedDirection
-    ENDSEQUENCE
-
-
-
 ENDDEFINE
 
 DEFINE Column USING _id AND _numberFloors AND _numberOfElevators AND firstServedFloor AND _lastServedFloor
@@ -99,8 +102,6 @@ DEFINE Column USING _id AND _numberFloors AND _numberOfElevators AND firstServed
             SET bestElevator TO elevator
         ENDIF
     ENDSEQUENCE
-
-
 ENDDEFINE
 
 DEFINE Elevator USING _id
@@ -130,7 +131,6 @@ DEFINE Elevator USING _id
         REMOVE destination FROM destinationList
         ROTATE destinationList LEFT 
     ENDSEQUENCE
-
 ENDDEFINE
 
 DEFINE callButton USING AND _direction AND _floor    
@@ -138,3 +138,9 @@ DEFINE callButton USING AND _direction AND _floor
     floor: _floor
 ENDDEFINE
 
+---------------------------------------------------------TESTING SECTION------------------------------------------------------------------
+_numberColumns AND _numberElevatorsPerColumn AND _numberBasements AND _numberFloors
+INIT battery1 TO INSTANTIATE Baterry WITH 4, 3, 6, 66
+_requestedFloor AND _requestedDirection
+CALL requestElevator WITH 43 AND Up
+CALL requestFloor WITH 20
