@@ -31,7 +31,7 @@ DEFINE Baterry USING _numberColumns AND _numberElevatorsPerColumn AND _numberBas
             ADD newColumn TO columnlist
         ENDFOR
     ENDSEQUENCE
-                                        43                   UP
+                                                           
     SEQUENCE requestElevator WITH _requestedFloor AND _requestedDirection
         CALL goToDestinationFloor WITH _requestedFloor AND _requestedDirection
         ADD 1 TO destinationList OF bestElevator
