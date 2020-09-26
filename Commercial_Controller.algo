@@ -143,7 +143,7 @@ ENDDEFINE
 
 ---------------------------------------------------------TESTING SECTION------------------------------------------------------------------
 _numberColumns AND _numberElevatorsPerColumn AND _numberBasements AND _numberFloors
-INIT battery1 TO INSTANTIATE Baterry WITH 4, 3, 6, 66
+INIT battery1 TO INSTANTIATE Baterry WITH 4, 3, 6, 60
 _requestedFloor AND _requestedDirection
 CALL requestElevator WITH 43 AND Up
 CALL requestFloor WITH 20
