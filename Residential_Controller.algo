@@ -30,7 +30,7 @@ DEFINE Column USING _numberFloors AND _numberOfElevators
         ELSE 
             SET requestedDirection TO Up
         ENDIF
-        CALL goToDestinationFloor OF elvat WITH _requestedFloor AND _requestedDirection
+        CALL goToDestinationFloor OF elevator WITH _requestedFloor AND _requestedDirection
     ENDSEQUENCE    
 
     SEQUENCE findBestElevator WITH _requestedFloor AND _requestedDirection RETURNING bestElevator
