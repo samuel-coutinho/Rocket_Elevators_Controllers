@@ -1,133 +1,107 @@
-DEFINE constant number_floors EQUAL 10
-DEFINE integer requested_floor
-DEFINE number_cages EQUAL 2 
-DEFINE cages array[number_cages]
-DEFINE cages_direction array[number_cages] EQUAL idle
-DEFINE cages_button array[number_floors + 1]
-DEFINE requested_floor_direction
-DEFINE cages_current_floor  array[number_floors + 1] EQUAL 0
-DEFINE cages_destinations array[number_cages, number_floors + 1]
-DEFINE door_state array[number_floors + 1]
+DEFINE Column USING _numberFloors AND _numberOfElevators
+    status: Online
+    numberFloors: _numberFloors
+    numberOfElevators: _numberOfElevators    
+    ElevatorList: EMPTY LIST
+    callButtonList: EMPTY LIST
 
-DEFINE Floor_Button USING floor_number AND requested_direction:
-    FLOOR_NUMBER: floor_number,
-    REQUESTED_DIRECTION: requested_direction
+    SEQUENCE createElevatorList USING _numberOfElevators
+        FOR iterator FROM 1 TO _numberOfElevators
+            INIT newElevator TO INSTANTIATE Elevator WITH iterator
+            ADD newElevator TO ElevatorList
+        ENDFOR
+    ENDSEQUENCE
+
+    SEQUENCE createcallButtonList USING _numberFloors
+        FOR iterator FROM 1 TO _numberFloors            
+            INIT newCallButton TO INSTANTIATE CallButon WITH None AND iterator
+            ADD newCallButton TO callButtonList                
+        ENDFOR
+    ENDSEQUENCE
+
+    SEQUENCE requestElevator WITH _requestedFloor AND _requestedDirection
+        CALL findBestElevator WITH _requestedFloor AND _requestedDirection RETURNING bestElevator
+        CALL goToDestinationFloor OF bestElevator WITH _requestedFloor AND _requestedDirection   
+    ENDSEQUENCE 
+
+    SEQUENCE requestFloor WITH _requestedFloor 
+        IF _requestedFloor IS GREATER THAN currentFloor
+            SET requestedDirection TO Down
+        ELSE 
+            SET requestedDirection TO Up
+        ENDIF
+        CALL goToDestinationFloor OF elvat WITH _requestedFloor AND _requestedDirection
+    ENDSEQUENCE    
+
+    SEQUENCE findBestElevator WITH _requestedFloor AND _requestedDirection RETURNING bestElevator
+        SET shortestDistance TO _numberFloors
+        SET bestElevator TO 0
+        FOR EACH elevator in ElevatorList
+            CALL calcDistanceToFloor OF elevator USING _requestedFloor RETURNING distance
+            IF directon IS EQUAL _requestedDirection AND ABSOLUTE(currentFloor) IS GREATER THAN _requestedFloor THEN
+                CALL calcShortestDistance WITH _distance AND shortestDistance RETURNING bestElevator
+            ELSE IF directon IS EQUAL None AND bestElevator IS EQUAL 0 THEN
+                CALL calcShortestDistance WITH _distance AND shortestDistance RETURNING bestElevator
+            ELSE
+                CALL calcShortestDistance WITH _distance AND shortestDistance RETURNING bestElevator
+            ENDIF                
+        ENDFOR
+        RETURN bestElevator
+    ENDSEQUENCE 
+
+    SEQUENCE calcShortestDistance WITH _distance AND shortestDistance RETURNING bestElevator
+        IF distance IS LESS OR EQUAL THAN shortestDistance
+            SET shortestDistance TO distance
+            SET bestElevator TO elevator
+        ENDIF
+    ENDSEQUENCE
 ENDDEFINE
 
-SET floor_request_button TO INSTANTIATE Floor_Button
+DEFINE Elevator USING _id
+    ID: _id
+    status: Online  
+    directon: Nome
+    currentFloor: 1
+    doors: Closed   
+    destinationList: EMPTY LIST
+    
+    SEQUENCE calcDistanceToFloor USING _requestedFloor RETURNING distance
+        SET distance TO ABSOLUTE(_requestedFloor MINUS currentFloor)     
+        RETURN distance
+    ENDSEQUENCE
 
-CALL checkFloorButtons
-CAll checkCagesButtons
+    SEQUENCE goToDestinationFloor WITH _requestedFloor AND _requestedDirection    
+        ADD _requestedFloor TO destinationList     
+        CALL moveElevatorToDestination
+        CALL openDoors WITH bestElevator   // not implemented
+        WAIT 5 seconds
+        CALL closeDoors WITH bestElevator
+    ENDSEQUENCE
 
-CALL doQueue
+    SEQUENCE moveElevatorToDestination
+        SET destination TO READ destinationList[1]        
+        IF currentFloor IS GREATER THAN destination
+            SET direction TO Down            
+        ELSE 
+            SET direction TO Up             
+        WHILE currentFloor IS NOT EQUAL destination
+            CALL moveElevator WITH direction
+            Call readCurrentFloor RETURNING currentFloor
+            DISPLAY currentFloor
+        ENDWHILE
+        REMOVE destination FROM destinationList
+        ROTATE destinationList LEFT 
+    ENDSEQUENCE
+ENDDEFINE
 
+DEFINE callButton USING AND _direction AND _floor    
+    direction: _direction
+    floor: _floor
+ENDDEFINE
 
-SEQUENCE checkFloorButtons
-    IF Floor_Button IS pressed THEN
-        SET floor_number TO READ Floor_Button floor_number   
-        SET requested_direction TO READ Floor_Button requested_direction
-        CALL addFloorQueue WITH floor_number AND requested_direction RETURNING selected_cage
-    ENDIF
-ENDSEQUENCE
-
-SEQUENCE checkCagesButtons
-    FOR EACH cage IN cages
-        IF cage_button IS pressed THEN
-            SET requested_floor TO READ cage_button              
-            CALL addCageQueue WITH requested_floor AND cage
-    ENDFOR
-ENDSEQUENCE
-
-SEQUENCE addFloorQueue USING floor_number AND floor_direction         
-        SET shortest_distance_cage_floor TO number_floors
-        SET cage_find TO 0
-        
-        CALL testCagesInSameDirection WITH floor_direction RETURNING selected_cage AND cage_find
-        IF  cage_find IS EQUAL 0 THEN
-            CALL testCagesInSameDirection WITH idle RETURNING selected_cage AND cage_find
-        ENDIF
-        If cage_find IS EQUAL 0 THEN
-            CALL tryFindAvailableCage RETURNING selected_cage AND cage_find
-        ENDIF
-        If cage_find IS EQUAL 1 THEN
-            SET cages_destinations[selected_cage][floor_number]
-        ENDIF          
-ENDSEQUENCE
-
-SEQUENCE testCagesInSameDirection WITH test_direction RETURNING selected_cage AND cage_find
-    FOR EACH row IN cages_destinations[row][column]
-        IF cages_direction[row] IS EQUAL test_direction THEN
-            CALL tryFindAvailableCage RETURNING selected_cage AND cage_find
-            IF cage_find IS EQUAL 1 THEN
-                RETURN selected_cage AND cage_find
-            ELSE RETURN cage_find
-            ENDIF
-        ENDIF
-    ENDFOR
-ENDSEQUENCE
-
-SEQUENCE tryFindAvailableCage RETURNING selected_cage AND cage_find
-    CALL calcDistanceToNextDestinationFloor WITH cages_direction RETURNING distance_cage_floor
-    IF distance_cage_floor IS LESS THAN shortest_distance_cage_floor THEN
-        SET shortest_distance_cage_floor TO distance_cage_floor
-        SET selected_cage TO cage_number
-        SET cage_find TO 1       
-    ENDIF
-ENDSEQUENCE
-
-SEQUENCE calcDistanceToNextDestinationFloor WITH cages_direction RETURNING distance_cage_floor
-    distance_cage_floor IS EQUAL 0
-    SET column TO cages_current_floor
-    WHILE distance_cage_floor IS EQUAL 0
-        INCREMENT column
-        IF cages_direction IS up
-            IF cages_destinations[row][column] IS NOT EQUAL 0 THEN
-                RETURN distance_cage_floor AS diference between cages_destinations[row][column] AND cages_current_floor            
-            ENDIF               
-        ENDIF
-        IF cages_direction IS down
-            SUBTRACT 1 FROM column
-            IF cages_destinations[row][column] IS NOT EQUAL 0 THEN
-                RETURN distance_cage_floor AS diference between cages_current_floor AND cages_destinations[row][column]             
-            ENDIF               
-        ENDIF
-    ENDWHILE
-ENDSEQUENCE
-
-SEQUENCE addCageQueue USING requested_floor AND cage
-    IF cages_destinations[cage][requested_floor] IS EQUAL 0
-        SET cages_destinations[cage][requested_floor] TO 1
-    ENDIF       
-ENDSEQUENCE
-
-SEQUENCE doQueue
-    FOR EACH cage IN cages
-        IF cages_direction EQUAL TO idle THEN
-            SET column To 1
-            WHILE cages_destinations[cage][column] IS EQUAL 0 
-                INCREMENT cages_destinations column
-            ENDWHILE
-        ENDIF
-        IF cages_direction EQUAL TO up THEN
-            SET column TO cages_current_floor
-            WHILE cages_destinations[cage][column] IS EQUAL 0 OR down
-                INCREMENT cages_destinations column
-            ENDWHILE
-        ENDIF
-        IF cages_direction EQUAL TO down THEN
-            SET column TO cages_current_floor
-            WHILE cages_destinations[cage][column] IS EQUAL 0 OR up
-                INCREMENT cages_destinations column
-            ENDWHILE
-        ENDIF
-        IF cages_current_floor IS GREATER THAN column THEN
-            move down
-            SUBTRACT 1 FROM cages_current_floor
-        ELSE IF cages_current_floor IS LESS THAN column THEN
-            move up
-            INCREMENT cages_current_floor  
-        ELSE
-            SET door_state open
-            wait 5 seconds
-            SET door_state close         
-ENDSEQUENCE
+---------------------------------------------------------TESTING SECTION------------------------------------------------------------------
+_numberFloors AND _numberOfElevators
+INIT column1 TO INSTANTIATE Column WITH 10, 2
+_requestedFloor AND _requestedDirection
+CALL requestElevator WITH 8 AND Up
+CALL requestFloor WITH 5
