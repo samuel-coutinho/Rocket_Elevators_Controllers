@@ -38,9 +38,13 @@ DEFINE Column USING _numberFloors AND _numberOfElevators
         SET bestElevator TO 0
         FOR EACH elevator in ElevatorList
             CALL calcDistanceToFloor OF elevator USING _requestedFloor RETURNING distance
-            IF directon IS EQUAL _requestedDirection AND ABSOLUTE(currentFloor) IS GREATER THAN _requestedFloor THEN
+            IF directon IS EQUAL Down AND currentFloor IS GREATER THAN _requestedFloor THEN
                 CALL calcShortestDistance WITH _distance AND shortestDistance RETURNING bestElevator
-            ELSE IF directon IS EQUAL None AND bestElevator IS EQUAL 0 THEN
+            ENDIF
+            IF directon IS EQUAL Up AND currentFloor IS LESS THAN _requestedFloor THEN
+                CALL calcShortestDistance WITH _distance AND shortestDistance RETURNING bestElevator
+            ENDIF
+            IF directon IS EQUAL None AND bestElevator IS EQUAL 0 THEN
                 CALL calcShortestDistance WITH _distance AND shortestDistance RETURNING bestElevator
             ELSE
                 CALL calcShortestDistance WITH _distance AND shortestDistance RETURNING bestElevator
@@ -86,8 +90,7 @@ DEFINE Elevator USING _id
             SET direction TO Up             
         WHILE currentFloor IS NOT EQUAL destination
             CALL moveElevator WITH direction
-            Call readCurrentFloor RETURNING currentFloor
-            DISPLAY currentFloor
+            Call readCurrentFloor RETURNING currentFloor            
         ENDWHILE
         REMOVE destination FROM destinationList
         ROTATE destinationList LEFT 

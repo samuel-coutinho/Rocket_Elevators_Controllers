@@ -53,6 +53,8 @@ DEFINE Baterry USING _numberColumns AND _numberElevatorsPerColumn AND _numberBas
         ADD _requestedFloor TO destinationList OF bestElevator        
         CALL moveElevatorToDestination OF elevator
         CALL openDoors WITH bestElevator   // not implemented
+        WAIT 5 seconds
+        CALL closeDoors WITH bestElevator
     ENDSEQUENCE
 
     SEQUENCE findBestColumn WITH _requestedFloor RETURNING column          
@@ -127,6 +129,7 @@ DEFINE Elevator USING _id
         WHILE currentFloor IS NOT EQUAL destination
             CALL moveElevator WITH direction
             Call readCurrentFloor RETURNING currentFloor
+            DISPLAY currentFloor
         ENDWHILE
         REMOVE destination FROM destinationList
         ROTATE destinationList LEFT 
