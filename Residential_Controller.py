@@ -90,15 +90,8 @@ class callButton:
 
 
 col1 = Column(10, 2)
-#e1 = Elevator(8)
-#direction = 'Up'
-floor = 5
-elevator = 0
-#x = col1.elevatorList[0].calcDistanceToFloor(6)
-#x = col1.findBestElevator(floor, direction)
-#col1.elevatorList[0].goToDestinationFloor(floor, direction)
-#print(col1.elevatorList[0].destinationList)
-col1.requestFloor(elevator, floor)
+#(elevator, floor)
+col1.requestFloor(0, 5)
 time.sleep(5)
 col1.requestFloor(0, 3)
 
@@ -116,17 +109,8 @@ col1.requestFloor(0, 3)
             direction = 'Down'
         else:
             direction = 'Up'
-        #CALL goToDestinationFloor OF elevator WITH _requestedFloor AND _requestedDirection
-     
+        #CALL goToDestinationFloor OF elevator WITH _requestedFloor AND _requestedDirection     
 
-print("status = ", col1.status)
-print("numberFloors = ", col1.numberFloors)
-print("numberOfElevators = ", col1.numberOfElevators)
-print("elevatorList = ", col1.elevatorList)
-print("callButtonList = ", col1.callButtonList)
-for i in range(10):
-    print("callButtonList",i , "= ", col1.callButtonList[i]) 
-print("elevatorList = ", col1.elevatorList[0].id)
 
 """
 
