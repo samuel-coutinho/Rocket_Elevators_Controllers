@@ -1,3 +1,6 @@
+import time
+
+
 class Column:
     def __init__(self, numberFloors, numberOfElevators):
         self.status = 'Online'
@@ -10,7 +13,15 @@ class Column:
 
     def createElevatorList(self):
         for i in range(self.numberOfElevators):                             
-            self.elevatorList.append(Elevator(i))    
+            self.elevatorList.append(Elevator(i))
+
+    def requestFloor(self, i, requestedFloor):        
+        if requestedFloor > self.elevatorList[i].currentFloor:
+            direction = 'Up'
+        else:
+            direction = 'Down'
+        self.elevatorList[i].goToDestinationFloor(requestedFloor, direction)
+      
 
     def findBestElevator(self, requestedFloor, direction):
         shortestDistance = self.numberFloors
@@ -48,9 +59,28 @@ class Elevator:
 
     def goToDestinationFloor(self, requestedFloor, direction):
         self.destinationList.append(requestedFloor)
+        self.directon = direction        
+        self.moveElevatorToDestination()
       #  CALL openDoors WITH bestElevator   // not implemented
        # WAIT 5 seconds
-       # CALL closeDoors WITH bestElevator        
+       # CALL closeDoors WITH bestElevator
+        
+    def moveElevatorToDestination(self):
+        destination = self.destinationList[0]                                     
+        while self.currentFloor != destination:
+            print('Current floor = ', self.currentFloor)
+            print('direction = ', self.directon)  
+            if self.directon =='Up':
+                time.sleep(2)
+                self.currentFloor += 1
+            if self.directon =='Down':
+                time.sleep(2)
+                self.currentFloor -= 1                       
+        self.destinationList.pop(0)
+        self.directon = 'None'
+        print('Destination floor = ', self.currentFloor)
+        print('direction = ', self.directon)
+        print('Opening Doors')        
 
 
 class callButton:
@@ -61,12 +91,16 @@ class callButton:
 
 col1 = Column(10, 2)
 #e1 = Elevator(8)
-direction = 'Up'
+#direction = 'Up'
 floor = 5
+elevator = 0
 #x = col1.elevatorList[0].calcDistanceToFloor(6)
 #x = col1.findBestElevator(floor, direction)
-col1.elevatorList[0].goToDestinationFloor(floor, direction)
-print(col1.elevatorList[0].destinationList)
+#col1.elevatorList[0].goToDestinationFloor(floor, direction)
+#print(col1.elevatorList[0].destinationList)
+col1.requestFloor(elevator, floor)
+time.sleep(5)
+col1.requestFloor(0, 3)
 
 
 
@@ -83,32 +117,7 @@ print(col1.elevatorList[0].destinationList)
         else:
             direction = 'Up'
         #CALL goToDestinationFloor OF elevator WITH _requestedFloor AND _requestedDirection
-    
-    
-
-         
-
-   
-
-    def goToDestinationFloor(requestedFloor, direction):
-        destinationList.append(requestedFloor)
-      #  CALL openDoors WITH bestElevator   // not implemented
-       # WAIT 5 seconds
-       # CALL closeDoors WITH bestElevator
-  
-
-    def moveElevatorToDestination:
-        destination = destinationList[1]        
-        if currentFloor > destination:
-            direction = 'Down'            
-        else: 
-            direction = 'Up'             
-        while currentFloor != destination:
-            pass
-            #CALL moveElevator WITH direction
-            #Call readCurrentFloor RETURNING currentFloor           
-        
-        destinationList.pop(0)
+     
 
 print("status = ", col1.status)
 print("numberFloors = ", col1.numberFloors)
