@@ -37,12 +37,11 @@ def main():
                     requestedFloor = int(input('Please provide a Floor between 1 and 10\n'))
                 if requestedFloor == col1.elevatorList[elevator].currentFloor:
                     print('You are already on the floor', requestedFloor)
-                    requestedFloor = int(input('Please provide the Floor you want to go(1-10): '))                                                  
+                    requestedFloor = int(input('Please provide the Floor you want to go(1-10): '))                                          
                 col1.requestFloor(elevator, requestedFloor)
-
-
             print('Elevato 0 Floor = ', col1.elevatorList[0].currentFloor)
-            print('Elevator 1 Floor = ', col1.elevatorList[1].currentFloor)           
+            print('Elevator 1 Floor = ', col1.elevatorList[1].currentFloor)
+            
         if option1 == 3:
             break
 
@@ -53,9 +52,8 @@ class Column:
         self.numberFloors = numberFloors
         self.numberOfElevators = numberOfElevators
         self.elevatorList = []
-        self.callButtonList = [['none'] for i in range(numberFloors)]
-        self.createElevatorList()   
-    
+        self.callButtonList = []
+        self.createElevatorList()     
 
     def createElevatorList(self):
         for i in range(self.numberOfElevators):                             
@@ -65,17 +63,16 @@ class Column:
         for i in range(self.numberFloors):                             
             self.callButtonList.append(callButton(i))
 
-    def requestElevator(self,requestedFloor, requestedDirection):
-     #   bestElevator = None         
-        bestElevator = self.findBestElevator(requestedFloor, requestedDirection)       
-        self.requestFloor(bestElevator.id, requestedFloor )
+    def requestElevator(self,requestedFloor, requestedDirection):          
+        bestElevator = self.findBestElevator(requestedFloor, requestedDirection)      
+        self.requestFloor(bestElevator.id, requestedFloor )                        
 
-    def requestFloor(self, elevator, requestedFloor):        
+    def requestFloor(self, elevator, requestedFloor):                                    
         if requestedFloor > self.elevatorList[elevator].currentFloor:
             elevatorDirection = 'Up'
         else:
             elevatorDirection = 'Down'
-        self.elevatorList[elevator].goToDestinationFloor(requestedFloor, elevatorDirection)      
+        self.elevatorList[elevator].goToDestinationFloor(requestedFloor, elevatorDirection)    
 
     def findBestElevator(self, requestedFloor, requestedDirection):
         shortestDistance = self.numberFloors
@@ -105,8 +102,7 @@ class Column:
                 if distance <= shortestDistance:
                     shortestDistance = distance
                     bestElevatorId = i              
-        return self.elevatorList[bestElevatorId]   
-                          
+        return self.elevatorList[bestElevatorId]                           
 
 class Elevator:
     def __init__(self, id):
@@ -115,15 +111,14 @@ class Elevator:
         self.elevatorDirection = 'None'
         self.currentFloor = 1
         self.doors = 'Closed'   
-        self.destinationList = []
-    
+        self.destinationList = []    
 
     def goToDestinationFloor(self, requestedFloor, elevatorDirection):
         self.destinationList.append(requestedFloor)
         self.elevatorDirection = elevatorDirection        
         self.destinationList.sort()
         destination = self.destinationList[0]                                     
-        while self.currentFloor != destination:
+        if self.currentFloor != destination:
             print('Elevator = ', self.id)
             print('Current floor = ', self.currentFloor)
             print('direction = ', self.elevatorDirection)  
