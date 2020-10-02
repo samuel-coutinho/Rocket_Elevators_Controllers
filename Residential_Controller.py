@@ -1,5 +1,26 @@
 import time
 
+#Main menu
+def main():
+    option1 = 0      
+    while option1 != 4:
+        option1 = int(input("""Select one of the following test scenarios option:
+        1) Scenario 1
+        2) Scenario 2
+        3) Scenario 3
+        4) Exit)\n"""))
+        #Prevents numbers out of the range(1-3)
+        while option1 < 1 or option1 > 4:
+            option1 = int(input('Please provide a number between 1 and 4\n'))
+        #Option 1 of menu
+        if option1 == 1:
+            Scenario1()           
+        #Option 2 of menu
+        if option1 == 2:
+            Scenario2()
+        if option1 == 3:
+            Scenario3()
+
 # Classes definition
 class Column:
     def __init__(self, numberFloors, numberOfElevators):
@@ -115,14 +136,16 @@ def Scenario1():
     floorOfPersonRequestingElevator = 3
     requestedFloor = 7
     callButtonDirection = 'Up'
-    print('*****************************************')
+    print('***************************************************')
     print('Scenario 1')
     print('Elevator A is Idle at floor 2')
     print('Elevator B is Idle at floor 6')
     print('Someone is on floor 3 and wants to go to the 7th floor.')
     print('Elevator A = 0 is expected to be sent.\n')
     runScenario(columnNumber, columnNumber.elevatorList[0].currentFloor, columnNumber.elevatorList[0].elevatorDirection, columnNumber.elevatorList[1].currentFloor, columnNumber.elevatorList[1].elevatorDirection, floorOfPersonRequestingElevator, requestedFloor, callButtonDirection)    
-    print('*****************************************')
+    print('***************************************************')
+    del columnNumber
+    del column1
 
 def Scenario2():
     column2 = Column(10, 2)
@@ -138,7 +161,7 @@ def Scenario2():
     floorOfPersonRequestingElevator = 1
     requestedFloor = 6
     callButtonDirection = 'Up'
-    print('*****************************************')
+    print('***************************************************')
     print('Scenario 2')
     print('Elevator A is Idle at floor 10')
     print('Elevator B is Idle at floor 3\n')
@@ -163,7 +186,9 @@ def Scenario2():
     requestedFloor = 2
     time.sleep(1)
     runScenario(columnNumber, columnNumber.elevatorList[0].currentFloor, columnNumber.elevatorList[0].elevatorDirection, columnNumber.elevatorList[1].currentFloor, columnNumber.elevatorList[1].elevatorDirection, floorOfPersonRequestingElevator, requestedFloor, callButtonDirection)    
-    print('*****************************************')
+    print('***************************************************')
+    del columnNumber
+    del column2
 
 def Scenario3():
     column3 = Column(10, 2)
@@ -180,7 +205,7 @@ def Scenario3():
     floorOfPersonRequestingElevator = 3
     requestedFloor = 2
     callButtonDirection = 'Up'
-    print('*****************************************')
+    print('***************************************************')
     print('Scenario 3')
     print('Elevator A is Idle at floor 10')
     print('Elevator B is Moving from floor 3 to floor 6')
@@ -200,7 +225,9 @@ def Scenario3():
     columnNumber.elevatorList[1].destinationList = columnNumber.elevatorList[1].destinationList[1:]
 
     runScenario(columnNumber, columnNumber.elevatorList[0].currentFloor, columnNumber.elevatorList[0].elevatorDirection, columnNumber.elevatorList[1].currentFloor, columnNumber.elevatorList[1].elevatorDirection, floorOfPersonRequestingElevator, requestedFloor, callButtonDirection)
-    print('*****************************************')
+    print('***************************************************')
+    del columnNumber
+    del column3
 
 def runScenario(columnNumber, elevatorAinitialFloor, elevatorAinitialDirection, elevatorBinitialFloor, elevatorBinitialDirection, floor, requestedFloor, callButtonDirection ):        
       
@@ -221,9 +248,6 @@ def runScenario(columnNumber, elevatorAinitialFloor, elevatorAinitialDirection, 
         print('Going to floor ',requestedFloor,'\n')
         elevator = columnNumber.findBestElevator(floor, columnNumber.callButtonList[floor].direction)    
         columnNumber.requestFloor(elevator.id, requestedFloor)
-        #time.sleep(1)
+        #time.sleep(1)        
 #-------Test Section-------#
-Scenario1()
-#Scenario2()
-#Scenario3()
-
+main()
