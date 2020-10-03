@@ -1,3 +1,32 @@
+#Main menu
+def main()
+    option1 = 0      
+    while option1 != 4
+        puts"""Select one of the following test scenarios option:
+        1) Scenario 1
+        2) Scenario 2
+        3) Scenario 3
+        4) Exit)\n"""
+        option1 = gets.to_i
+        #Prevents numbers out of the range(1-3)
+        while option1 < 1 || option1 > 4
+            puts 'Please provide a number between 1 and 4'
+            option1 = gets
+        end
+        #Option 1 of menu
+        if option1 == 1
+            Scenario1()
+        end           
+        #Option 2 of menu
+        if option1 == 2
+            Scenario2()
+        end
+        if option1 == 3
+            Scenario3()
+        end
+    end
+end
+
 # Classes definition
 class Column
     attr_accessor :status, :numberFloors, :numberOfElevators, :elevatorList, :callButtonList     
@@ -144,13 +173,15 @@ def Scenario1()
     puts'Elevator A is Idle at floor 2'
     puts'Elevator B is Idle at floor 6'
     puts'Someone is on floor 3 and wants to go to the 7th floor.'
-    puts'Elevator A = 0 is expected to be sent.\n'
+    puts "Elevator A = 0 is expected to be sent."
     runScenario(columnNumber, columnNumber.elevatorList[0].currentFloor, columnNumber.elevatorList[0].elevatorDirection, columnNumber.elevatorList[1].currentFloor, columnNumber.elevatorList[1].elevatorDirection, floorOfPersonRequestingElevator, requestedFloor, callButtonDirection)    
     puts'***************************************************'  
 end
 def Scenario2()
-    column2 = Column.new(10, 2)
-    columnNumber = column2      
+    columnTwo = Column.new(10, 2)
+    columnNumber = columnTwo   
+    columnNumber.createElevatorList
+    columnNumber.createcallButtonList   
     #Elevator A
     columnNumber.elevatorList[0].currentFloor = 10
     columnNumber.elevatorList[0].elevatorDirection = 'None'
@@ -165,15 +196,15 @@ def Scenario2()
     puts '***************************************************'
     puts 'Scenario 2'
     puts'Elevator A is Idle at floor 10'
-    puts'Elevator B is Idle at floor 3\n'
+    puts'Elevator B is Idle at floor 3'
     puts'Someone is on the 1st floor and requests the 6th floor.'
-    puts'Elevator B = 1 should be sent.\n'
+    puts"Elevator B = 1 should be sent."
     runScenario(columnNumber, columnNumber.elevatorList[0].currentFloor, columnNumber.elevatorList[0].elevatorDirection, columnNumber.elevatorList[1].currentFloor, columnNumber.elevatorList[1].elevatorDirection, floorOfPersonRequestingElevator, requestedFloor, callButtonDirection)    
 
     # 2 minutes later, someone else is on the 3rd floor and requests the 5th floor. Elevator B should be sent
        
     puts'2 minutes later, someone else is on the 3rd floor and requests the 5th floor.'
-    puts'Elevator B = 1 should be sent.\n'    
+    puts'Elevator B = 1 should be sent.'    
     floorOfPersonRequestingElevator = 3
     requestedFloor = 5
     callButtonDirection = 'Up'
@@ -182,15 +213,17 @@ def Scenario2()
 
     #Finally, a third person is at floor 9 and wants to go down to the 2nd floor. Elevator A should be sent.
     puts'Finally, a third person is at floor 9 and wants to go down to the 2nd floor.'
-    puts'Elevator A = 0 should be sent.\n'
+    puts'Elevator A = 0 should be sent.'
     floorOfPersonRequestingElevator = 9
     requestedFloor = 2    
     runScenario(columnNumber, columnNumber.elevatorList[0].currentFloor, columnNumber.elevatorList[0].elevatorDirection, columnNumber.elevatorList[1].currentFloor, columnNumber.elevatorList[1].elevatorDirection, floorOfPersonRequestingElevator, requestedFloor, callButtonDirection)    
     puts'***************************************************' 
 end
 def Scenario3()
-    column3 = Column.new(10, 2)
-    columnNumber = column3     
+    columnThree = Column.new(10, 2)
+    columnNumber = columnThree   
+    columnNumber.createElevatorList
+    columnNumber.createcallButtonList     
     #Elevator A
     columnNumber.elevatorList[0].currentFloor = 10
     columnNumber.elevatorList[0].elevatorDirection = 'None'
@@ -246,6 +279,7 @@ def runScenario(columnNumber, elevatorAinitialFloor, elevatorAinitialDirection, 
         elevator = columnNumber.findBestElevator(floor, columnNumber.callButtonList[floor].direction)    
         columnNumber.requestFloor(elevator.id, requestedFloor)
 end 
-
 #-------Test Section-------#
-Scenario1()
+main()
+#Scenario1()
+#Scenario3()
