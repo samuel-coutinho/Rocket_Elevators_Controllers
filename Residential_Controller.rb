@@ -18,12 +18,10 @@ class Column
             @callButtonList.push(CallButton.new(i))
         end
     end
-
     def requestElevator(requestedFloor, requestedDirection)          
         bestElevator = findBestElevator(requestedFloor, requestedDirection)      
         requestFloor(bestElevator.id, requestedFloor)
     end
-
     def requestFloor(elevator, requestedFloor)       
         puts 'Closing doors'                                           
         if requestedFloor > @elevatorList[elevator].currentFloor
@@ -34,7 +32,6 @@ class Column
         end       
         @elevatorList[elevator].goToDestinationFloor(requestedFloor, elevatorDirection)
     end
-
     def findBestElevator(requestedFloor, requestedDirection)
         shortestDistance = @numberFloors
         bestElevatorId = 0
@@ -110,28 +107,145 @@ class Elevator
                 @currentFloor -= 1  
             end  
         end                   
-        @destinationList = @destinationList.shift
+        @destinationList.shift
         @elevatorDirection = 'None'
         print 'Elevator = ', @id, "\n"       
         print 'Destination floor = ', @currentFloor, "\n"        
         print 'Opening Doors', "\n"
     end  
 end
-
 class CallButton
     attr_accessor :direction, :floor
     def initialize(floor)    
         @direction = 'None'
         @floor = floor 
     end
-end  
+end
 
-col1 = Column.new(10, 2)
-col1.createElevatorList
-col1.createcallButtonList
-#e1 = Elevator.new(5)
-requestedFloor = 3
-requestedDirection = 'Up'
-elevatorDirection = 'Up'
-elevator = 0
-col1.requestElevator(requestedFloor, requestedDirection)
+#Scenarios functions
+def Scenario1()
+    columnOne = Column.new(10, 2)
+    columnOne.createElevatorList
+    columnOne.createcallButtonList
+    columnNumber = columnOne     
+    #Elevator A
+    columnNumber.elevatorList[0].currentFloor = 2
+    columnNumber.elevatorList[0].elevatorDirection = 'None'
+    #Elevator B
+    columnNumber.elevatorList[1].currentFloor = 6
+    columnNumber.elevatorList[1].elevatorDirection = 'None'   
+
+    #Someone is on floor 3 and wants to go to the 7th floor.
+    floorOfPersonRequestingElevator = 3
+    requestedFloor = 7
+    callButtonDirection = 'Up'
+    puts'***************************************************'
+    puts'Scenario 1'
+    puts'Elevator A is Idle at floor 2'
+    puts'Elevator B is Idle at floor 6'
+    puts'Someone is on floor 3 and wants to go to the 7th floor.'
+    puts'Elevator A = 0 is expected to be sent.\n'
+    runScenario(columnNumber, columnNumber.elevatorList[0].currentFloor, columnNumber.elevatorList[0].elevatorDirection, columnNumber.elevatorList[1].currentFloor, columnNumber.elevatorList[1].elevatorDirection, floorOfPersonRequestingElevator, requestedFloor, callButtonDirection)    
+    puts'***************************************************'  
+end
+def Scenario2()
+    column2 = Column.new(10, 2)
+    columnNumber = column2      
+    #Elevator A
+    columnNumber.elevatorList[0].currentFloor = 10
+    columnNumber.elevatorList[0].elevatorDirection = 'None'
+    #Elevator B
+    columnNumber.elevatorList[1].currentFloor = 3
+    columnNumber.elevatorList[1].elevatorDirection = 'None'  
+
+    #Someone is on the 1st floor and requests the 6th floor.
+    floorOfPersonRequestingElevator = 1
+    requestedFloor = 6
+    callButtonDirection = 'Up'
+    puts '***************************************************'
+    puts 'Scenario 2'
+    puts'Elevator A is Idle at floor 10'
+    puts'Elevator B is Idle at floor 3\n'
+    puts'Someone is on the 1st floor and requests the 6th floor.'
+    puts'Elevator B = 1 should be sent.\n'
+    runScenario(columnNumber, columnNumber.elevatorList[0].currentFloor, columnNumber.elevatorList[0].elevatorDirection, columnNumber.elevatorList[1].currentFloor, columnNumber.elevatorList[1].elevatorDirection, floorOfPersonRequestingElevator, requestedFloor, callButtonDirection)    
+
+    # 2 minutes later, someone else is on the 3rd floor and requests the 5th floor. Elevator B should be sent
+       
+    puts'2 minutes later, someone else is on the 3rd floor and requests the 5th floor.'
+    puts'Elevator B = 1 should be sent.\n'    
+    floorOfPersonRequestingElevator = 3
+    requestedFloor = 5
+    callButtonDirection = 'Up'
+    #(columnNumber, elevator A currentFloor, elevator A elevatorDirection, elevator B currentFloor, elevator B elevatorDirection, floorOfPersonRequestingElevator, requestedFloor) 
+    runScenario(columnNumber, columnNumber.elevatorList[0].currentFloor, columnNumber.elevatorList[0].elevatorDirection, columnNumber.elevatorList[1].currentFloor, columnNumber.elevatorList[1].elevatorDirection, floorOfPersonRequestingElevator, requestedFloor, callButtonDirection)    
+
+    #Finally, a third person is at floor 9 and wants to go down to the 2nd floor. Elevator A should be sent.
+    puts'Finally, a third person is at floor 9 and wants to go down to the 2nd floor.'
+    puts'Elevator A = 0 should be sent.\n'
+    floorOfPersonRequestingElevator = 9
+    requestedFloor = 2    
+    runScenario(columnNumber, columnNumber.elevatorList[0].currentFloor, columnNumber.elevatorList[0].elevatorDirection, columnNumber.elevatorList[1].currentFloor, columnNumber.elevatorList[1].elevatorDirection, floorOfPersonRequestingElevator, requestedFloor, callButtonDirection)    
+    puts'***************************************************' 
+end
+def Scenario3()
+    column3 = Column.new(10, 2)
+    columnNumber = column3     
+    #Elevator A
+    columnNumber.elevatorList[0].currentFloor = 10
+    columnNumber.elevatorList[0].elevatorDirection = 'None'
+    #Elevator B
+    columnNumber.elevatorList[1].currentFloor = 3
+    columnNumber.elevatorList[1].elevatorDirection = 'Up'
+    columnNumber.elevatorList[1].destinationList.push(6)    
+
+    #Someone is on floor 3 and wants to go to the 7th floor.
+    floorOfPersonRequestingElevator = 3
+    requestedFloor = 2
+    callButtonDirection = 'Up'
+    puts'***************************************************'
+    puts'Scenario 3'
+    puts'Elevator A is Idle at floor 10'
+    puts'Elevator B is Moving from floor 3 to floor 6'
+    puts'Someone is on floor 3 and requests the 2nd floor.'
+    puts "Elevator A = 0 should be sent."
+    
+    #(columnNumber, elevator A currentFloor, elevator A elevatorDirection, elevator B currentFloor, elevator B elevatorDirection, floorOfPersonRequestingElevator, requestedFloor)
+    runScenario(columnNumber, columnNumber.elevatorList[0].currentFloor, columnNumber.elevatorList[0].elevatorDirection, columnNumber.elevatorList[1].currentFloor, columnNumber.elevatorList[1].elevatorDirection, floorOfPersonRequestingElevator, requestedFloor, callButtonDirection)
+
+    #5 minutes later, someone else is on the 10th floor and wants to go to the 3rd. Elevator B should be sent.
+    puts'5 minutes later, someone else is on the 10th floor and wants to go to the 3rd.'
+    puts'Elevator B should be sent.'
+    
+    floorOfPersonRequestingElevator = 10
+    requestedFloor = 3
+    callButtonDirection = 'Down'
+    columnNumber.elevatorList[1].currentFloor = 6
+    columnNumber.elevatorList[1].elevatorDirection = 'None'
+    columnNumber.elevatorList[1].destinationList = columnNumber.elevatorList[1].destinationList.shift   
+
+    runScenario(columnNumber, columnNumber.elevatorList[0].currentFloor, columnNumber.elevatorList[0].elevatorDirection, columnNumber.elevatorList[1].currentFloor, columnNumber.elevatorList[1].elevatorDirection, floorOfPersonRequestingElevator, requestedFloor, callButtonDirection)
+    puts'***************************************************'   
+end
+def runScenario(columnNumber, elevatorAinitialFloor, elevatorAinitialDirection, elevatorBinitialFloor, elevatorBinitialDirection, floor, requestedFloor, callButtonDirection )        
+      
+        #Elevator A
+        columnNumber.elevatorList[0].currentFloor = elevatorAinitialFloor
+        columnNumber.elevatorList[0].elevatorDirection = elevatorAinitialDirection
+        #Elevator B
+        columnNumber.elevatorList[1].currentFloor = elevatorBinitialFloor
+        columnNumber.elevatorList[1].elevatorDirection = elevatorBinitialDirection        
+
+        #Request Elevator        
+        columnNumber.callButtonList[floor].direction = callButtonDirection    
+        columnNumber.requestElevator(floor, columnNumber.callButtonList[floor].direction)  
+        puts"Please wait a moment"     
+    
+        #Request floor        
+        print 'Going to floor ',requestedFloor, "\n"
+        elevator = columnNumber.findBestElevator(floor, columnNumber.callButtonList[floor].direction)    
+        columnNumber.requestFloor(elevator.id, requestedFloor)
+end 
+
+#-------Test Section-------#
+Scenario1()
