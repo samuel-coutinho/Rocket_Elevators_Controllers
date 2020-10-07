@@ -4,7 +4,7 @@ using System.Collections.Generic;
 namespace Week_3
 {
     class Program
-    {       
+    {
         class Battery
         {
             public int id;
@@ -55,35 +55,37 @@ namespace Week_3
                     columnList.Add(newcolumn);                        
                 }   
             }
-            public void requestElevator(int requestedFloor, string requestedDirection)
+            public void requestElevator(int requestedFloor)
             {          
-                Column bestColumn = columnList[findBestColumn(requestedFloor)];                
-                int bestElevatorId = bestColumn.findBestElevator(requestedFloor, requestedDirection);                                    
-                bestColumn.requestFloor(bestElevatorId, requestedFloor );
-            }    
-            // public void requestFloor(int elevator, int requestedFloor)
-            // {
-            //     string elevatorDirection = "None";                                    
-            //     if (requestedFloor > elevatorList[elevator].currentFloor)
-            //     {
-            //         elevatorDirection = "Up";
-            //     } else  {
-            //         elevatorDirection = "Down";
-            //     } 
-            //     elevatorList[elevator].goToDestinationFloor(requestedFloor, elevatorDirection);         
-            // }
+                // Calls the function that returns the id of the appropriate column and use it to select the bestColumn
+                Column bestColumn = columnList[findBestColumn(requestedFloor)];
+                // Call the function that returns the id of the appropriate elevator                
+                int bestElevatorId = bestColumn.findBestElevator(requestedFloor);
+                // Call the function that routes the elevator to the person
+                string elevatorDirection = "None";                                    
+                if (requestedFloor > bestColumn.elevatorList[bestElevatorId].currentFloor)
+                {
+                    elevatorDirection = "Up";
+                } else  {
+                    elevatorDirection = "Down";
+                }                                    
+                bestColumn.elevatorList[bestElevatorId].goToDestinationFloor(requestedFloor, elevatorDirection, bestColumn.id);
+                // Adds the Lobby floor to destinationList of the selected elevator
+                bestColumn.elevatorList[bestElevatorId].destinationList.Add(1);               
+            }             
             public int findBestColumn(int _requestedFloor)
             {
+                // Checks which column has the range to which the desired floor belongs
+                int bestColumnId = 0;
                 for (int i = 0 ; i < numberColumns; i++)
                 {
-                    if (_requestedFloor > columnList[i].firstServedFloor && _requestedFloor < columnList[i].lastServedFloor)
+                    if (_requestedFloor >= columnList[i].firstServedFloor && _requestedFloor <= columnList[i].lastServedFloor)
                     {
-                        return i;
+                        bestColumnId = i;
                     }
                 }
-                return _requestedFloor;
-            }        
-                       
+                return bestColumnId;             }             
+                            
         }       
         class Column
         {
@@ -121,33 +123,17 @@ namespace Week_3
                 } else  {
                     elevatorDirection = "Down";
                 } 
-                elevatorList[elevator].goToDestinationFloor(requestedFloor, elevatorDirection);         
+                elevatorList[elevator].goToDestinationFloor(requestedFloor, elevatorDirection, id);         
             }           
-            public int findBestElevator (int requestedFloor, string requestedDirection)
+            public int findBestElevator (int requestedFloor)
             {
                 int shortestDistance = numberFloors;
                 int bestElevatorId = 0;
-                int distance = 0;
+                int distance = 0;                
                 
-                for (int i = 0; i < numberOfElevators; i++)    
-                {
-                    if (requestedDirection == "Up" && elevatorList[i].elevatorDirection == "Up" && requestedFloor > elevatorList[i].currentFloor)
-                    {
-                        distance = Math.Abs(requestedFloor - elevatorList[i].currentFloor);    
-                        if (distance <= shortestDistance)
-                        {
-                            shortestDistance = distance;
-                            bestElevatorId = i;
-                        }
-                    }
-                }
-                if  (bestElevatorId > 0)
-                {
-                    return bestElevatorId;
-                }
                 for (int i = 0; i < numberOfElevators; i++)
                 {
-                    if (requestedDirection == "Down" && elevatorList[i].elevatorDirection == "Down" && requestedFloor < elevatorList[i].currentFloor)
+                    if (elevatorList[i].elevatorDirection == "Down" && requestedFloor < elevatorList[i].currentFloor)
                     {
                         distance = Math.Abs(requestedFloor - elevatorList[i].currentFloor);    
                         if (distance <= shortestDistance)   {
@@ -162,7 +148,7 @@ namespace Week_3
                 }
                 for (var i = 0; i < numberOfElevators; i++)
                 {
-                    if (elevatorList[i].elevatorDirection == "None")
+                    if (elevatorList[i].elevatorDirection != "Down")
                     {
                         distance = Math.Abs(requestedFloor - elevatorList[i].currentFloor); 
                         if (distance <= shortestDistance)
@@ -175,7 +161,6 @@ namespace Week_3
                 return bestElevatorId;
             }                    
         }
-
         class Elevator
         {
             public int id;
@@ -197,7 +182,7 @@ namespace Week_3
                 destinationList = new List<int>();                 
             }
             // Set the next destination and move the elevator
-            public void goToDestinationFloor (int _requestedFloor, string _elevatorDirection )
+            public void goToDestinationFloor (int _requestedFloor, string _elevatorDirection, int columnId)
             {
                 destinationList.Add(_requestedFloor);
                 elevatorDirection = _elevatorDirection;
@@ -213,11 +198,27 @@ namespace Week_3
                 }
                 // Set the next destination to the first element of sorted list.
                 int destination = destinationList[0];
-                int bestColumnId = BatteryOne.findBestColumn(_requestedFloor);
-                Console.WriteLine ("Column = " + bestColumnId);
-                Console.WriteLine ("Elevator = " + id);
+                string columnLetter = "None";
+                switch (columnId)
+                {
+                    case 0:
+                        columnLetter = "A";
+                        break;
+                    case 1:
+                        columnLetter = "B";
+                        break;
+                    case 2:
+                        columnLetter = "C";
+                        break;
+                    case 3:
+                        columnLetter = "D";
+                        break;
+                }          
+                
+                Console.WriteLine ("Column = " + columnLetter);                
+                Console.WriteLine ("Elevator = " + columnLetter + (id + 1));
                 Console.WriteLine ("Current floor = " + currentFloor);
-                Console.WriteLine ("Direction = " + elevatorDirection );
+                Console.WriteLine ("Direction = " + elevatorDirection + "\n" );                                
                 while (currentFloor != destination)
                 {                   
                     if (elevatorDirection == "Up")
@@ -232,24 +233,41 @@ namespace Week_3
                 // Removes the reached floor from destinationList and puts the direction in None (Idle)
                 destinationList.Remove(0);
                 elevatorDirection = "None";
-                Console.WriteLine ("Column = " + bestColumnId);
-                Console.WriteLine ("Elevator = " + id);
+                Console.WriteLine ("Column = " + columnLetter);
+                Console.WriteLine ("Elevator = " + columnLetter + (id + 1));
                 Console.WriteLine("Destination floor = " + currentFloor);       
                 Console.WriteLine("Opening Doors\n"); 
             }             
-        }     
+        }
+        static void runScenarioOne()
+        {       
+            Battery BatteryOne = new Battery(0, 4, 5, 6, 60);
+            //Scenario 1:
+            //Elevator B1 at 20th floor going to the 5th floor
+            BatteryOne.columnList[1].elevatorList[0].currentFloor = 20;
+            BatteryOne.columnList[1].elevatorList[0].elevatorDirection = "Down";
+            // Elevator B2 at 3rd floor going to the 15th floor
+            BatteryOne.columnList[1].elevatorList[1].currentFloor = 3;
+            BatteryOne.columnList[1].elevatorList[1].elevatorDirection = "Up";
+            // Elevator B3 at 13th floor going to RC
+            BatteryOne.columnList[1].elevatorList[2].currentFloor = 13;
+            BatteryOne.columnList[1].elevatorList[2].elevatorDirection = "Down";
+            // Elevator B4 at 15th floor going to the 2nd floor
+            BatteryOne.columnList[1].elevatorList[3].currentFloor = 15;            
+            BatteryOne.columnList[1].elevatorList[3].elevatorDirection = "Down";
+            // Elevator B5 at 6th floor going to RC
+            BatteryOne.columnList[1].elevatorList[4].currentFloor = 6;
+            BatteryOne.columnList[1].elevatorList[4].elevatorDirection = "Down";
 
+            // Someone at RC wants to go to the 20th floor.
+            int requestedFloor = 15;            
+            BatteryOne.requestElevator(requestedFloor);
+            // Elevator B5 is expected to be sent.         
+        }  
         static void Main(string[] args)
-        {                     
-            Battery BatteryOne = new Battery(0, 4, 5, 6, 60);            
-            //Console.WriteLine("Test");
-            //Elevator E1 = new Elevator(9);
-            //Column C1 = new Column(8, 20, 5, 1, 20);            
-            int requestedFloor = 26;
-            string requestedDirection = "Up";
-            //int elevator = 4;
-            //C1.requestFloor(elevator, requestedFloor);
-            BatteryOne.requestElevator(requestedFloor, requestedDirection);                    
+        {            
+            runScenarioOne();            
+                               
         }
     }
 }
