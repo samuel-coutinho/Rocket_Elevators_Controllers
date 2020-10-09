@@ -9,7 +9,7 @@ To run in both C# and Golang:
 At the end of the code there are 4 functions: Scenario1(), Scenario2(), Scenario3() and Scenario4().
 Leave the function you want to run uncommented and the others commented.
 
-The functions creates a Baterry object and sets up the columns and elevators initial positions and directions.
+The functions creates a Battery object and sets up the columns and elevators initial positions and directions.
 
 The runScenario functions then runs the simulation with the values entered.
 
