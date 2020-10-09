@@ -80,6 +80,59 @@ func (c *Column) Init(_id int, _numberFloors int, _numberOfElevators int, _first
 		c.elevatorList = append(c.elevatorList, *newElevator)
 	}
 }
+func (c *Column) findBestElevator(requestedFloor int) int {
+	shortestDistance := c.numberFloors
+	var bestElevatorId int
+	distance := 0
+	bestElevatorFound := false
+
+	for i := 0; i < c.numberOfElevators; i++ {
+		if c.elevatorList[i].elevatorDirection == "Down" && requestedFloor <= c.elevatorList[i].currentFloor && c.id > 0 {
+			if requestedFloor == c.elevatorList[i].currentFloor && c.elevatorList[i].doors == "Open" {
+				bestElevatorId = i
+				return bestElevatorId
+			}
+			distance = goAbs(requestedFloor - c.elevatorList[i].currentFloor)
+			if distance <= shortestDistance && distance != 0 {
+				shortestDistance = distance
+				bestElevatorId = i
+				bestElevatorFound = true
+			}
+		}
+	}
+	if bestElevatorFound {
+		return bestElevatorId
+	}
+	for j := 0; j < c.numberOfElevators; j++ {
+		if requestedFloor == c.elevatorList[j].currentFloor && c.elevatorList[j].doors == "Open" {
+			bestElevatorId = j
+			return bestElevatorId
+		}
+		if c.elevatorList[j].elevatorDirection == "Up" && requestedFloor >= c.elevatorList[j].currentFloor && c.id < 1 {
+			distance = goAbs(c.elevatorList[j].currentFloor - requestedFloor)
+			if distance <= shortestDistance && distance != 0 {
+				shortestDistance = distance
+				bestElevatorId = j
+				bestElevatorFound = true
+			}
+		}
+	}
+	if bestElevatorFound {
+		return bestElevatorId
+	}
+	for k := 0; k < c.numberOfElevators; k++ {
+		if requestedFloor == c.elevatorList[k].currentFloor && c.elevatorList[k].doors == "Open" {
+			bestElevatorId = k
+			return bestElevatorId
+		}
+		distance = goAbs(requestedFloor - c.elevatorList[k].currentFloor)
+		if distance <= shortestDistance {
+			shortestDistance = distance
+			bestElevatorId = k
+		}
+	}
+	return bestElevatorId
+}
 
 type Elevator struct {
 	id                int
@@ -127,7 +180,7 @@ func (e *Elevator) goToDestinationFloor(_requestedFloor int, _elevatorDirection 
 	case 3:
 		columnLetter = "D"
 	}
-
+	fmt.Println("***************************************")
 	fmt.Printf("Column = %s\n", columnLetter)
 	fmt.Printf("Elevator = %s%d\n", columnLetter, (e.id + 1))
 
@@ -162,20 +215,24 @@ func (e *Elevator) goToDestinationFloor(_requestedFloor int, _elevatorDirection 
 	}
 	e.doors = "Open"
 	fmt.Printf("Opening Doors\n\n")
+	fmt.Println("***************************************")
 
 }
 
+func goAbs(x int) int {
+	if x < 0 {
+		return -x
+	}
+	return x
+}
+
 func main() {
-	fmt.Println("***************************************")
+
 	BatteryOne := new(Battery)
 	BatteryOne.Init(1, 4, 5, 6, 60)
-	//BatteryOne.CreateColumnList()
-	// ColumnTest := new(Column)
-	// ColumnTest.Init(0, 20, 5, 2, 20)
-	ElevatorTest := new(Elevator)
-	ElevatorTest.Init(1)
-	ElevatorTest.goToDestinationFloor(10, "Up", 1)
-	fmt.Println("***************************************")
+	BatteryOne.CreateColumnList()
 
-	//fmt.Printf(BatteryOne.columnList)
+	//Test
+	x := BatteryOne.columnList[1].findBestElevator(15)
+	fmt.Println(x)
 }
