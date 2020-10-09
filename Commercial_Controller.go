@@ -53,6 +53,7 @@ func (b *Battery) CreateColumnList() {
 		b.columnList = append(b.columnList, *newColumn)
 	}
 }
+
 func (b *Battery) requestElevator(requestedFloor int) {
 	// Calls the functions that finds the bestColumn and bestElevator
 	bestColumn := b.columnList[b.findBestColumn(requestedFloor)]
@@ -71,8 +72,9 @@ func (b *Battery) assignElevator(requestedFloor int) {
 	bestElevatorId := bestColumn.findBestElevator(1)
 	// Calls the function to define the elevatorDirection
 	elevatorDirection := b.defineElevatorDirection(1, bestColumn.id, bestElevatorId)
+	//Calls the function that routes the elevator to the Lobby(1)
 	bestColumn.elevatorList[bestElevatorId].goToDestinationFloor(1, elevatorDirection, bestColumn.id)
-	//
+	// Sends the elevator to requested floor
 	elevatorDirection = b.defineElevatorDirection(requestedFloor, bestColumn.id, bestElevatorId)
 	bestColumn.elevatorList[bestElevatorId].goToDestinationFloor(requestedFloor, elevatorDirection, bestColumn.id)
 }
@@ -131,8 +133,10 @@ func (c *Column) findBestElevator(requestedFloor int) int {
 	distance := 0
 	bestElevatorFound := false
 
+	// Looks for an elevator going down (condition 1) on a higher level than the floor requested (condition 2) when it is not in the basements (condition 3)
 	for i := 0; i < c.numberOfElevators; i++ {
 		if c.elevatorList[i].elevatorDirection == "Down" && requestedFloor <= c.elevatorList[i].currentFloor && c.id > 0 {
+			// Checks if there is an elevator on the requested floor with the doors still open
 			if requestedFloor == c.elevatorList[i].currentFloor && c.elevatorList[i].doors == "Open" {
 				bestElevatorId = i
 				return bestElevatorId
@@ -144,15 +148,18 @@ func (c *Column) findBestElevator(requestedFloor int) int {
 				bestElevatorFound = true
 			}
 		}
-	}
+	} // If the first search has a result, returns it
 	if bestElevatorFound {
 		return bestElevatorId
 	}
+
 	for j := 0; j < c.numberOfElevators; j++ {
+		// Checks if there is an elevator on the requested floor with the doors still open
 		if requestedFloor == c.elevatorList[j].currentFloor && c.elevatorList[j].doors == "Open" {
 			bestElevatorId = j
 			return bestElevatorId
 		}
+		// Looks for an elevator going up (condition 1) on a lower level than the floor requested (condition 2) when it is in the basements (condition 3)
 		if c.elevatorList[j].elevatorDirection == "Up" && requestedFloor >= c.elevatorList[j].currentFloor && c.id < 1 {
 			distance = goAbs(c.elevatorList[j].currentFloor - requestedFloor)
 			if distance <= shortestDistance && distance != 0 {
@@ -164,7 +171,7 @@ func (c *Column) findBestElevator(requestedFloor int) int {
 	}
 	if bestElevatorFound {
 		return bestElevatorId
-	}
+	} // If previous searches have not been successful, looks for the nearest elevator within the column
 	for k := 0; k < c.numberOfElevators; k++ {
 		if requestedFloor == c.elevatorList[k].currentFloor && c.elevatorList[k].doors == "Open" {
 			bestElevatorId = k
@@ -277,6 +284,8 @@ func runScenarioOne() {
 	BatteryOne := new(Battery)
 	BatteryOne.Init(1, 4, 5, 6, 60)
 	BatteryOne.CreateColumnList()
+	fmt.Println("Scenario 1")
+
 	//Scenario 1:
 	//Elevator B1 at 20th floor going to the 5th floor
 	BatteryOne.columnList[1].elevatorList[0].currentFloor = 20
@@ -299,13 +308,95 @@ func runScenarioOne() {
 	BatteryOne.assignElevator(requestedFloor)
 	// Elevator B5 is expected to be sent.
 }
+func runScenarioTwo() {
+	BatteryTwo := new(Battery)
+	BatteryTwo.Init(1, 4, 5, 6, 60)
+	BatteryTwo.CreateColumnList()
+	fmt.Println("Scenario 2")
+
+	// Scenario 2:
+	// Elevator C1 at RC going to the 21st floor (not yet departed)
+	BatteryTwo.columnList[2].elevatorList[0].currentFloor = 1
+	BatteryTwo.columnList[2].elevatorList[0].elevatorDirection = "Up"
+
+	// Elevator C2 at 23rd floor going to the 28th floor
+	BatteryTwo.columnList[2].elevatorList[1].currentFloor = 23
+	BatteryTwo.columnList[2].elevatorList[1].elevatorDirection = "Up"
+	// Elevator C3 at 33rd floor going to RC
+	BatteryTwo.columnList[2].elevatorList[2].currentFloor = 33
+	BatteryTwo.columnList[2].elevatorList[2].elevatorDirection = "Down"
+	// Elevator C4 at 40th floor going to the 24th floor
+	BatteryTwo.columnList[2].elevatorList[3].currentFloor = 40
+	BatteryTwo.columnList[2].elevatorList[3].elevatorDirection = "Down"
+	// Elevator C5 at 39th floor going to RC
+	BatteryTwo.columnList[2].elevatorList[4].currentFloor = 39
+	BatteryTwo.columnList[2].elevatorList[4].elevatorDirection = "Down"
+
+	// Someone at RC wants to go to the 36th floor.
+	requestedFloor := 36
+	BatteryTwo.assignElevator(requestedFloor)
+	// Elevator C1 is expected to be sent.
+}
+func runScenarioThree() {
+	BatteryThree := new(Battery)
+	BatteryThree.Init(1, 4, 5, 6, 60)
+	BatteryThree.CreateColumnList()
+	fmt.Println("Scenario 3")
+
+	// Scenario 3:
+	// Elevator D1 at 58th going to RC
+	BatteryThree.columnList[3].elevatorList[0].currentFloor = 58
+	BatteryThree.columnList[3].elevatorList[0].elevatorDirection = "Down"
+	// Elevator D2 at 50th floor going to the 60th floor
+	BatteryThree.columnList[3].elevatorList[1].currentFloor = 50
+	BatteryThree.columnList[3].elevatorList[1].elevatorDirection = "Up"
+	// Elevator D3 at 46th floor going to the 58th floor
+	BatteryThree.columnList[3].elevatorList[2].currentFloor = 46
+	BatteryThree.columnList[3].elevatorList[2].elevatorDirection = "Up"
+	// Elevator D4 at RC going to the 54th floor
+	BatteryThree.columnList[3].elevatorList[3].currentFloor = 1
+	BatteryThree.columnList[3].elevatorList[3].elevatorDirection = "Up"
+	// Elevator D5 at 60th floor going to RC
+	BatteryThree.columnList[3].elevatorList[4].currentFloor = 60
+	BatteryThree.columnList[3].elevatorList[4].elevatorDirection = "Down"
+
+	// Someone at 54e floor wants to go to RC.
+	requestedFloor := 54
+	BatteryThree.requestElevator(requestedFloor)
+	// Elevator D1 is expected to be sent.
+}
+func runScenarioFour() {
+	BatteryFour := new(Battery)
+	BatteryFour.Init(1, 4, 5, 6, 60)
+	BatteryFour.CreateColumnList()
+	fmt.Println("Scenario 4")
+
+	// Scenario 4:
+	// Elevator A1 “Idle” at SS4
+	BatteryFour.columnList[0].elevatorList[0].currentFloor = -4
+	BatteryFour.columnList[0].elevatorList[0].elevatorDirection = "None"
+	// Elevator A2 “Idle” at RC
+	BatteryFour.columnList[0].elevatorList[1].currentFloor = 1
+	BatteryFour.columnList[0].elevatorList[1].elevatorDirection = "None"
+	// Elevator A3 at SS3 going to SS5
+	BatteryFour.columnList[0].elevatorList[2].currentFloor = -3
+	BatteryFour.columnList[0].elevatorList[2].elevatorDirection = "Down"
+	// Elevator A4 at SS6 going to RC
+	BatteryFour.columnList[0].elevatorList[3].currentFloor = -6
+	BatteryFour.columnList[0].elevatorList[3].elevatorDirection = "Up"
+	// Elevator A5 at SS1 going to SS6
+	BatteryFour.columnList[0].elevatorList[4].currentFloor = -1
+	BatteryFour.columnList[0].elevatorList[4].elevatorDirection = "Down"
+
+	// Someone at SS3 wants to go to RC.
+	requestedFloor := -3
+	BatteryFour.requestElevator(requestedFloor)
+	// Elevator A4 is expected to be sent.
+}
 func main() {
 
-	BatteryOne := new(Battery)
-	BatteryOne.Init(1, 4, 5, 6, 60)
-	BatteryOne.CreateColumnList()
-
-	//Test section
-	runScenarioOne()
-
+	//runScenarioOne()
+	//runScenarioTwo()
+	//runScenarioThree()
+	runScenarioFour()
 }

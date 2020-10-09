@@ -74,13 +74,13 @@ namespace Week_3
                 Column bestColumn = columnList[findBestColumn(requestedFloor)];
                 int bestElevatorId = bestColumn.findBestElevator(1);
                 // Calls the function to define the elevatorDirection
-                string elevatorDirection = defineElevatorDirection(1, bestColumn.id, bestElevatorId);                                  
+                string elevatorDirection = defineElevatorDirection(1, bestColumn.id, bestElevatorId);
+                // Calls the function that routes the elevator to the Lobby(1)
                 bestColumn.elevatorList[bestElevatorId].goToDestinationFloor(1, elevatorDirection, bestColumn.id);
-                //
+                // Sends the elevator to requested floor
                 elevatorDirection = defineElevatorDirection(requestedFloor, bestColumn.id, bestElevatorId);
                 Console.WriteLine ("**********************");
                 bestColumn.elevatorList[bestElevatorId].goToDestinationFloor(requestedFloor, elevatorDirection, bestColumn.id);
-
             }                
             public int findBestColumn(int _requestedFloor)
             {
@@ -146,11 +146,11 @@ namespace Week_3
                 int bestElevatorId = -100;
                 int distance = 0;
                 bool bestElevatorFound = false;                
-                
+                // Looks for an elevator going down (condition 1) on a higher level than the floor requested (condition 2) when it is not in the basements (condition 3)
                 for (int i = 0; i < numberOfElevators; i++)
                 {                   
                     if (elevatorList[i].elevatorDirection == "Down" && requestedFloor <= elevatorList[i].currentFloor && id > 0)
-                    {
+                    {   // Checks if there is an elevator on the requested floor with the doors still open
                         if (requestedFloor == elevatorList[i].currentFloor && elevatorList[i].doors == "Open")
                         {
                             bestElevatorId = i;
@@ -163,18 +163,18 @@ namespace Week_3
                             bestElevatorFound = true;
                         } 
                     }
-                }
+                }   // If the first search has a result, returns it
                 if  (bestElevatorFound)
                 {
                     return bestElevatorId;
                 }
                 for (int j = 0; j < numberOfElevators; j++)
-                {
+                {   // Checks if there is an elevator on the requested floor with the doors still open
                     if (requestedFloor == elevatorList[j].currentFloor && elevatorList[j].doors == "Open")
                     {
                         bestElevatorId = j;
                         return bestElevatorId;
-                    } 
+                    } // Looks for an elevator going up (condition 1) on a lower level than the floor requested (condition 2) when it is in the basements (condition 3)
                     if (elevatorList[j].elevatorDirection == "Up" && requestedFloor >= elevatorList[j].currentFloor && id < 1)
                     {
                         distance = Math.Abs(elevatorList[j].currentFloor - requestedFloor);    
@@ -188,7 +188,7 @@ namespace Week_3
                 if  (bestElevatorFound)
                 {
                     return bestElevatorId;
-                }
+                } // If previous searches have not been successful, looks for the nearest elevator within the column
                 for (int k = 0; k < numberOfElevators; k++)
                 {                    
                     if (requestedFloor == elevatorList[k].currentFloor && elevatorList[k].doors == "Open")
