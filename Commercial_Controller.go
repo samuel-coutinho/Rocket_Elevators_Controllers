@@ -53,6 +53,51 @@ func (b *Battery) CreateColumnList() {
 		b.columnList = append(b.columnList, *newColumn)
 	}
 }
+func (b *Battery) requestElevator(requestedFloor int) {
+	// Calls the functions that finds the bestColumn and bestElevator
+	bestColumn := b.columnList[b.findBestColumn(requestedFloor)]
+	bestElevatorId := bestColumn.findBestElevator(requestedFloor)
+
+	// Calls the function to define the elevatorDirection
+	elevatorDirection := b.defineElevatorDirection(requestedFloor, bestColumn.id, bestElevatorId)
+
+	// Calls the function that routes the elevator to the person and then to the Lobby(1)
+	bestColumn.elevatorList[bestElevatorId].goToDestinationFloor(requestedFloor, elevatorDirection, bestColumn.id)
+	bestColumn.elevatorList[bestElevatorId].goToDestinationFloor(1, elevatorDirection, bestColumn.id)
+}
+func (b *Battery) assignElevator(requestedFloor int) {
+	// Calls the functions that finds the bestColumn and bestElevator
+	bestColumn := b.columnList[b.findBestColumn(requestedFloor)]
+	bestElevatorId := bestColumn.findBestElevator(1)
+	// Calls the function to define the elevatorDirection
+	elevatorDirection := b.defineElevatorDirection(1, bestColumn.id, bestElevatorId)
+	bestColumn.elevatorList[bestElevatorId].goToDestinationFloor(1, elevatorDirection, bestColumn.id)
+	//
+	elevatorDirection = b.defineElevatorDirection(requestedFloor, bestColumn.id, bestElevatorId)
+	bestColumn.elevatorList[bestElevatorId].goToDestinationFloor(requestedFloor, elevatorDirection, bestColumn.id)
+}
+func (b *Battery) findBestColumn(_requestedFloor int) int {
+	// Checks which column has the range to which the desired floor belongs
+	var bestColumnId int
+	for i := 0; i < b.numberColumns; i++ {
+		if _requestedFloor >= b.columnList[i].firstServedFloor && _requestedFloor <= b.columnList[i].lastServedFloor {
+			bestColumnId = i
+		}
+	}
+	return bestColumnId
+}
+
+// Defines the elevatorDirection comparing the requestedFloor and the current elavatorFloor
+func (b *Battery) defineElevatorDirection(requestedFloor, bestColumnId, bestElevatorId int) string {
+	elevatorDirection := b.columnList[bestColumnId].elevatorList[bestElevatorId].elevatorDirection
+	elavatorFloor := b.columnList[bestColumnId].elevatorList[bestElevatorId].currentFloor
+	if requestedFloor > elavatorFloor {
+		elevatorDirection = "Up"
+	} else if requestedFloor < elavatorFloor {
+		elevatorDirection = "Down"
+	}
+	return elevatorDirection
+}
 
 type Column struct {
 	id                int
@@ -219,6 +264,7 @@ func (e *Elevator) goToDestinationFloor(_requestedFloor int, _elevatorDirection 
 
 }
 
+// Function to return the absolute value of a integer
 func goAbs(x int) int {
 	if x < 0 {
 		return -x
@@ -226,13 +272,40 @@ func goAbs(x int) int {
 	return x
 }
 
+// Scenarios Functions
+func runScenarioOne() {
+	BatteryOne := new(Battery)
+	BatteryOne.Init(1, 4, 5, 6, 60)
+	BatteryOne.CreateColumnList()
+	//Scenario 1:
+	//Elevator B1 at 20th floor going to the 5th floor
+	BatteryOne.columnList[1].elevatorList[0].currentFloor = 20
+	BatteryOne.columnList[1].elevatorList[0].elevatorDirection = "Down"
+	// Elevator B2 at 3rd floor going to the 15th floor
+	BatteryOne.columnList[1].elevatorList[1].currentFloor = 3
+	BatteryOne.columnList[1].elevatorList[1].elevatorDirection = "Up"
+	// Elevator B3 at 13th floor going to RC
+	BatteryOne.columnList[1].elevatorList[2].currentFloor = 13
+	BatteryOne.columnList[1].elevatorList[2].elevatorDirection = "Down"
+	// Elevator B4 at 15th floor going to the 2nd floor
+	BatteryOne.columnList[1].elevatorList[3].currentFloor = 15
+	BatteryOne.columnList[1].elevatorList[3].elevatorDirection = "Down"
+	// Elevator B5 at 6th floor going to RC
+	BatteryOne.columnList[1].elevatorList[4].currentFloor = 6
+	BatteryOne.columnList[1].elevatorList[4].elevatorDirection = "Down"
+
+	// Someone at RC wants to go to the 20th floor.
+	requestedFloor := 20
+	BatteryOne.assignElevator(requestedFloor)
+	// Elevator B5 is expected to be sent.
+}
 func main() {
 
 	BatteryOne := new(Battery)
 	BatteryOne.Init(1, 4, 5, 6, 60)
 	BatteryOne.CreateColumnList()
 
-	//Test
-	x := BatteryOne.columnList[1].findBestElevator(15)
-	fmt.Println(x)
+	//Test section
+	runScenarioOne()
+
 }
