@@ -1,6 +1,25 @@
 # Rocket_Elevators_Controllers
 Contains the algorithm files for the elevator controllers for the New Rocket Elevator Solutions for both Residential and Commercial Offers
 
+COMERCIAL CONTROLLER
+--------------------
+
+To run in both C# and Golang:
+
+At the end of the code there are 4 functions: Scenario1(), Scenario2(), Scenario3() and Scenario4().
+Leave the function you want to run uncommented and the others commented.
+
+The functions creates a Baterry object and sets up the columns and elevators initial positions and directions.
+
+The runScenario functions then runs the simulation with the values entered.
+
+
+
+
+RESIDENCIAL CONTROLLER
+----------------------
+
+
 To run the program in Python:
 
 Run the Residential_Controller.py file in a prompt or open it in Vscode and run it.
